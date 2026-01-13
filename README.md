@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/9Pay-company/payment-gateway-php/main/logo.png?sanitize=true" width="200" alt="9PAY Logo">
+  <img src="https://raw.githubusercontent.com/9Pay-company/payment-gateway-php/refs/heads/main/logo.png?sanitize=true" width="200" alt="9PAY Logo">
 </p>
 
 
