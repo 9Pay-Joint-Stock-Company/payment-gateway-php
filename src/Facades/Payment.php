@@ -7,6 +7,7 @@ use NinePay\Contracts\RequestInterface;
 use NinePay\Contracts\ResponseInterface;
 use NinePay\Exceptions\PaymentException;
 use NinePay\PaymentManager;
+use NinePay\Support\CreatePaymentRequest;
 
 /**
  * Class Payment
@@ -31,11 +32,11 @@ class Payment
     /**
      * Create a payment request.
      *
-     * @param RequestInterface $request
+     * @param CreatePaymentRequest $request
      * @return ResponseInterface
      * @throws PaymentException
      */
-    public function createPayment(RequestInterface $request): ResponseInterface
+    public function createPayment(CreatePaymentRequest $request): ResponseInterface
     {
         try {
             return $this->manager->getGateway()->createPayment($request);
@@ -63,14 +64,14 @@ class Payment
     /**
      * Verify IPN/Webhook data from 9Pay.
      *
-     * @param array<string,mixed> $payload
+     * @param string $result
+     * @param string $checksum
      * @return bool
-     * @throws PaymentException
      */
-    public function verify(array $payload): bool
+    public function verify(string $result, string $checksum): bool
     {
         try {
-            return $this->manager->getGateway()->verify($payload);
+            return $this->manager->getGateway()->verify($result, $checksum);
         } catch (\Throwable $e) {
             throw new PaymentException($e->getMessage(), (int)$e->getCode(), $e);
         }

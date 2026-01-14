@@ -3,17 +3,17 @@
 </p>
 
 <p align="center">
-  <a href="https://packagist.org/packages/ninepay-php/payment-gateway">
-    <img src="https://img.shields.io/packagist/v/ninepay-php/payment-gateway.svg?style=flat-square" alt="Latest Version">
+  <a href="https://packagist.org/packages/ninepay-gateway/rest-client-php">
+    <img src="https://img.shields.io/packagist/v/ninepay-gateway/rest-client-php.svg?style=flat-square" alt="Latest Version">
   </a>
-  <a href="https://github.com/ninepay-php/payment-gateway/actions">
+  <a href="https://github.com/ninepay-gateway/rest-client-php/actions">
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build Status">
   </a>
-  <a href="https://packagist.org/packages/ninepay-php/payment-gateway">
-    <img src="https://img.shields.io/packagist/dt/ninepay-php/payment-gateway.svg?style=flat-square" alt="Total Downloads">
+  <a href="https://packagist.org/packages/ninepay-gateway/rest-client-php">
+    <img src="https://img.shields.io/packagist/dt/ninepay-gateway/rest-client-php.svg?style=flat-square" alt="Total Downloads">
   </a>
-  <a href="https://packagist.org/packages/ninepay-php/payment-gateway">
-    <img src="https://img.shields.io/packagist/l/ninepay-php/payment-gateway.svg?style=flat-square" alt="License">
+  <a href="https://packagist.org/packages/ninepay-gateway/rest-client-php">
+    <img src="https://img.shields.io/packagist/l/ninepay-gateway/rest-client-php.svg?style=flat-square" alt="License">
   </a>
 </p>
 
@@ -65,7 +65,7 @@ This package allows you to:
 Install the SDK via Composer:
 
 ```bash
-composer require ninepay-php/payment-gateway
+composer require ninepay-gateway/rest-client-php
 ```
 
 ---
@@ -104,7 +104,7 @@ NINEPAY_ENV=SANDBOX
 
 ```bash
 mkdir -p config
-cp vendor/ninepay-php/payment-gateway/config/ninepay.php config/ninepay.php
+cp vendor/ninepay-gateway/rest-client-php/config/ninepay.php config/ninepay.php
 ```
 
 ```php

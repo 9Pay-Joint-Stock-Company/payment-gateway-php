@@ -46,19 +46,28 @@ class CreatePaymentRequest implements RequestInterface
         $this->returnUrl = $returnUrl;
     }
 
-    public function toArray(): array
+    public function getRequestCode(): string
     {
-        $data = [
-            'request_code' => $this->requestCode,
-            'amount' => $this->amount,
-            'description' => $this->description,
-        ];
-        if (!empty($this->backUrl)) {
-            $data['back_url'] = (string)$this->backUrl;
-        }
-        if (!empty($this->returnUrl)) {
-            $data['return_url'] = (string)$this->returnUrl;
-        }
-        return $data;
+        return $this->requestCode;
+    }
+
+    public function getAmount(): string
+    {
+        return $this->amount;
+    }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    public function getBackUrl(): ?string
+    {
+        return $this->backUrl;
+    }
+
+    public function getReturnUrl(): ?string
+    {
+        return $this->returnUrl;
     }
 }

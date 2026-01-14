@@ -31,6 +31,6 @@ class PaymentTest extends TestCase
         $result = 'test';
         $checksum = strtoupper(hash('sha256', $result . $this->config['checksum_key']));
         
-        $this->assertTrue($facade->verify(['result' => $result, 'checksum' => $checksum]));
+        $this->assertTrue($facade->verify($result, $checksum));
     }
 }

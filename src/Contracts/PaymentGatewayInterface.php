@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace NinePay\Contracts;
 
+use NinePay\Support\CreatePaymentRequest;
+
 /**
  * Interface PaymentGatewayInterface
  * 
@@ -13,10 +15,10 @@ interface PaymentGatewayInterface
     /**
      * Create a payment request.
      *
-     * @param RequestInterface $request
+     * @param CreatePaymentRequest $request
      * @return ResponseInterface
      */
-    public function createPayment(RequestInterface $request): ResponseInterface;
+    public function createPayment(CreatePaymentRequest $request): ResponseInterface;
 
     /**
      * Query transaction status.
@@ -29,8 +31,9 @@ interface PaymentGatewayInterface
     /**
      * Verify response signature from the payment gateway.
      *
-     * @param array $payload
+     * @param string $result
+     * @param string $checksum
      * @return bool
      */
-    public function verify(array $payload): bool;
+    public function verify(string $result, string $checksum): bool;
 }
