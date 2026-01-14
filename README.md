@@ -2,25 +2,48 @@
   <img src="https://raw.githubusercontent.com/9Pay-company/payment-gateway-php/refs/heads/master/logo-readme.png?sanitize=true" width="500" alt="9PAY Logo">
 </p>
 
+<p align="center">
+  <a href="https://packagist.org/packages/ninepay-php/payment-gateway">
+    <img src="https://img.shields.io/packagist/v/ninepay-php/payment-gateway.svg?style=flat-square" alt="Latest Version">
+  </a>
+  <a href="https://github.com/ninepay-php/payment-gateway/actions">
+    <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build Status">
+  </a>
+  <a href="https://packagist.org/packages/ninepay-php/payment-gateway">
+    <img src="https://img.shields.io/packagist/dt/ninepay-php/payment-gateway.svg?style=flat-square" alt="Total Downloads">
+  </a>
+  <a href="https://packagist.org/packages/ninepay-php/payment-gateway">
+    <img src="https://img.shields.io/packagist/l/ninepay-php/payment-gateway.svg?style=flat-square" alt="License">
+  </a>
+</p>
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/ninepay-php/payment-gateway.svg?style=flat-square)](https://packagist.org/packages/ninepay-php/payment-gateway)
-[![Tests](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/ninepay-php/payment-gateway/actions)
-[![Total Downloads](https://img.shields.io/packagist/dt/ninepay-php/payment-gateway.svg?style=flat-square)](https://packagist.org/packages/ninepay-php/payment-gateway)
-[![License](https://img.shields.io/packagist/l/ninepay-php/payment-gateway.svg?style=flat-square)](https://packagist.org/packages/ninepay-php/payment-gateway)
-[![Stars](https://img.shields.io/github/stars/badges/shields)](https://packagist.org/packages/ninepay-php/payment-gateway)
+# 9PAY Payment Gateway PHP SDK
 
-Official PHP library for integrating 9PAY payment gateway. Supports creating payment requests, querying transactions, and verifying webhooks/callbacks.
+Official PHP SDK for integrating **9PAY Payment Gateway**.  
+Supports **PHP Native**, **Laravel**, and **Lumen**.
+
+This package allows you to:
+
+- Create payment requests
+- Query transaction status
+- Verify webhook / callback data
+- Integrate easily using OOP, SOLID & Facade pattern
 
 ---
 
 ## Table of Contents
+
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
+    - [PHP Native](#php-native)
+    - [Laravel](#laravel)
+    - [Lumen](#lumen)
 - [Usage](#usage)
     - [Initialization](#initialization)
     - [Create Payment](#create-payment)
     - [Query Transaction](#query-transaction)
-    - [Verify Webhook/Callback](#verify-webhookcallback)
+    - [Verify Webhook / Callback](#verify-webhook--callback)
 - [Error Handling](#error-handling)
 - [Testing](#testing)
 - [Security](#security)
@@ -28,46 +51,77 @@ Official PHP library for integrating 9PAY payment gateway. Supports creating pay
 
 ---
 
+## Requirements
+
+- PHP **>= 7.4**
+- Extensions:
+    - `json`
+    - `openssl`
+
+---
+
 ## Installation
 
-Install the library via [Composer](https://getcomposer.org/):
+Install the SDK via Composer:
 
 ```bash
 composer require ninepay-php/payment-gateway
 ```
 
-Requirements:
-- PHP >= 7.4
-- `json` and `openssl` extensions
+---
 
 ## Configuration
 
-You need identification information from the 9PAY Dashboard:
+### PHP Native
 
 ```php
 $config = [
-    'merchant_id'  => 'YOUR_MERCHANT_ID',  // Or client_id
-    'secret_key'   => 'YOUR_SECRET_KEY',   // Used to sign API requests
-    'checksum_key' => 'YOUR_CHECKSUM_KEY', // Used to verify Webhooks
-    'env'          => 'SANDBOX',           // SANDBOX (default) | PRODUCTION
+    'merchant_id'  => 'YOUR_MERCHANT_ID',
+    'secret_key'   => 'YOUR_SECRET_KEY',
+    'checksum_key' => 'YOUR_CHECKSUM_KEY',
+    'env'          => 'SANDBOX',
 ];
 ```
+
+---
+
+### Laravel
+
+```bash
+php artisan vendor:publish --tag=ninepay-config
+```
+
+```env
+NINEPAY_MERCHANT_ID=your_merchant_id
+NINEPAY_SECRET_KEY=your_secret_key
+NINEPAY_CHECKSUM_KEY=your_checksum_key
+NINEPAY_ENV=SANDBOX
+```
+
+---
+
+### Lumen
+
+```bash
+mkdir -p config
+cp vendor/ninepay-php/payment-gateway/config/ninepay.php config/ninepay.php
+```
+
+```php
+$app->register(NinePay\NinePayServiceProvider::class);
+$app->configure('ninepay');
+```
+
+```php
+$app->withFacades();
+class_alias(NinePay\Facades\NinePay::class, 'NinePay');
+```
+
+---
 
 ## Usage
 
 ### Initialization
-
-You can use `PaymentManager` or the `Facade` (if in a supported environment or used directly).
-
-**Using Facade:**
-
-```php
-use NinePay\Facades\Payment;
-
-$payment = new Payment($config);
-```
-
-**Using Manager:**
 
 ```php
 use NinePay\PaymentManager;
@@ -76,95 +130,97 @@ $manager = new PaymentManager($config);
 $gateway = $manager->getGateway();
 ```
 
-### Create Payment
+```php
+use NinePay;
 
-Use the `CreatePaymentRequest` DTO to prepare data:
+$gateway = NinePay::getGateway();
+```
+
+---
+
+### Create Payment
 
 ```php
 use NinePay\Support\CreatePaymentRequest;
 
 $request = new CreatePaymentRequest(
-    'INV123456',               // Invoice ID (invoice_no/request_code)
-    '50000',                   // Amount (VND)
-    'Payment for order #123',  // Description
-    'https://your-site.com/callback', // Back URL (optional)
-    'https://your-site.com/thanks'    // Return URL (optional)
+    'INV123456',
+    '50000',
+    'Payment for order #123',
+    'https://your-site.com/callback',
+    'https://your-site.com/return'
 );
 
-$response = $payment->createPayment($request);
+$response = $gateway->createPayment($request);
 
 if ($response->isSuccess()) {
-    $redirectUrl = $response->getData()['redirect_url'];
-    // Redirect customer
-    header('Location: ' . $redirectUrl);
+    header('Location: ' . $response->getData()['redirect_url']);
     exit;
-} else {
-    echo "Error: " . $response->getMessage();
 }
+
+echo $response->getMessage();
 ```
+
+---
 
 ### Query Transaction
 
-Check the status of a transaction via 9PAY `transactionId` or your invoice ID:
-
 ```php
-$response = $payment->inquiry('9PAY_TRANSACTION_ID');
+$response = $gateway->inquiry('9PAY_TRANSACTION_ID');
 
 if ($response->isSuccess()) {
-    $data = $response->getData();
-    print_r($data);
+    print_r($response->getData());
 }
 ```
 
-### Verify Webhook/Callback
+---
 
-When 9PAY sends notifications to your server, verify the validity:
+### Verify Webhook / Callback
 
 ```php
 $payload = [
-    'result'   => $_POST['result']   ?? '',
+    'result'   => $_POST['result'] ?? '',
     'checksum' => $_POST['checksum'] ?? '',
 ];
 
-if ($payment->verify($payload)) {
-    // Checksum is valid, decode the data
-    $decodedJson = $payment->getGateway()->decodeResult($payload['result']);
-    $data = json_decode($decodedJson, true);
-    
-    // Process order based on $data['status']
+if ($gateway->verify($payload)) {
+    $decoded = $gateway->decodeResult($payload['result']);
+    $data = json_decode($decoded, true);
 } else {
-    // Data is invalid or tampered with
     http_response_code(400);
 }
 ```
 
-## Error Handling
+---
 
-The library throws exceptions belonging to `NinePay\Exceptions\PaymentException` when an error occurs.
+## Error Handling
 
 ```php
 use NinePay\Exceptions\PaymentException;
 
 try {
-    $response = $payment->createPayment($request);
+    $gateway->createPayment($request);
 } catch (PaymentException $e) {
-    // Handle configuration or connection errors
-    error_log($e->getMessage());
+    logger()->error($e->getMessage());
 }
 ```
 
-## Testing
+---
 
-Run the test suite using PHPUnit:
+## Testing
 
 ```bash
 composer test
 ```
 
+---
+
 ## Security
 
-If you discover any security issues, please email `hotro@9pay.vn` instead of creating a public Issue.
+Please report security issues to **hotro@9pay.vn**.
+
+---
 
 ## License
 
-Released under the [MIT](LICENSE) license. Copyright belongs to **9Pay**.
+MIT License © 9Pay

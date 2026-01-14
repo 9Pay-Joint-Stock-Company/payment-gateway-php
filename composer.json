@@ -36,7 +36,16 @@
   "require-dev": {
     "phpunit/phpunit": "^9.5"
   },
-  "extra": {},
+  "extra": {
+    "laravel": {
+      "providers": [
+        "NinePay\\NinePayServiceProvider"
+      ],
+      "aliases": {
+        "NinePay": "NinePay\\Facades\\NinePay"
+      }
+    }
+  },
   "scripts": {
     "test": "vendor/bin/phpunit",
     "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
