@@ -8,6 +8,7 @@ use NinePay\Contracts\RequestInterface;
 use NinePay\Contracts\ResponseInterface;
 use NinePay\Exceptions\InvalidConfigException;
 use NinePay\Support\BasicResponse;
+use NinePay\Support\CreatePaymentRequest;
 use NinePay\Utils\Environment;
 use NinePay\Utils\HttpClient;
 use NinePay\Utils\MessageBuilder;
@@ -59,20 +60,12 @@ class NinePayGateway implements PaymentGatewayInterface
     /**
      * Create a payment request and get the redirect URL.
      *
-     * @param RequestInterface $request
+     * @param CreatePaymentRequest $request
      * @return ResponseInterface
      */
-    public function createPayment(RequestInterface $request): ResponseInterface
+    public function createPayment(CreatePaymentRequest $request): ResponseInterface
     {
-        $data = $request->toArray();
-
-        $requestCode = (string)($data['request_code'] ?? $data['invoice_no'] ?? '');
-        $amount = (string)($data['amount'] ?? '');
-        $description = (string)($data['description'] ?? '');
-        $backUrl = isset($data['back_url']) ? (string)$data['back_url'] : '';
-        $returnUrl = isset($data['return_url']) ? (string)$data['return_url'] : '';
-
-        if ($requestCode === '' || $amount === '' || $description === '') {
+        if ($request->getRequestCode() === '' || $request->getAmount() === '' || $request->getDescription() === '') {
             return new BasicResponse(false, [], 'Missing required fields: request_code, amount, description');
         }
 
@@ -80,12 +73,18 @@ class NinePayGateway implements PaymentGatewayInterface
         $payload = [
             'merchantKey' => $this->clientId,
             'time' => $time,
-            'invoice_no' => $requestCode,
-            'amount' => $amount,
-            'description' => $description,
+            'invoice_no' => $request->getRequestCode(),
+            'amount' => $request->getAmount(),
+            'description' => $request->getDescription(),
         ];
-        if ($backUrl !== '') { $payload['back_url'] = $backUrl; }
-        if ($returnUrl !== '') { $payload['return_url'] = $returnUrl; }
+
+        if ($request->getBackUrl() !== '') {
+            $payload['back_url'] = $request->getBackUrl();
+        }
+
+        if ($request->getReturnUrl() !== '') {
+            $payload['return_url'] = $request->getReturnUrl();
+        }
 
         $message = MessageBuilder::instance()
             ->with($time, $this->endpoint . '/payments/create', 'POST')
@@ -94,7 +93,7 @@ class NinePayGateway implements PaymentGatewayInterface
 
         $signature = Signature::sign($message, $this->secretKey);
         $httpData = [
-            'baseEncode' => base64_encode(json_encode($payload, JSON_UNESCAPED_UNICODE)),
+            'baseEncode' => base64_encode(json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)),
             'signature' => $signature,
         ];
         $redirectUrl = $this->endpoint . '/portal?' . http_build_query($httpData);
@@ -130,16 +129,16 @@ class NinePayGateway implements PaymentGatewayInterface
     /**
      * Verify IPN/Return signature from 9Pay.
      *
-     * @param array $payload Data received from 9Pay.
+     * @param string $result
+     * @param string $checksum
      * @return bool
      */
-    public function verify(array $payload): bool
+    public function verify(string $result, string $checksum): bool
     {
-        $result = isset($payload['result']) ? (string)$payload['result'] : '';
-        $checksum = isset($payload['checksum']) ? (string)$payload['checksum'] : '';
         if ($result === '' || $checksum === '') {
             return false;
         }
+
         $hashChecksum = strtoupper(hash('sha256', $result . $this->checksumKey));
         return hash_equals($hashChecksum, $checksum);
     }

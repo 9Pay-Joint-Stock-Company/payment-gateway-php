@@ -1,5 +1,5 @@
 {
-  "name": "ninepay-php/payment-gateway",
+  "name": "ninepay-gateway/rest-client-php",
   "description": "Official PHP SDK for 9PAY Payment Gateway",
   "type": "library",
   "license": "MIT",

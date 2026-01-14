@@ -55,24 +55,17 @@ class NinePayGatewayTest extends TestCase
         $gateway = new NinePayGateway($this->config);
         $result = 'some-result';
         $checksum = strtoupper(hash('sha256', $result . $this->config['checksum_key']));
-        
-        $payload = [
-            'result' => $result,
-            'checksum' => $checksum,
-        ];
-        
-        $this->assertTrue($gateway->verify($payload));
+
+        $this->assertTrue($gateway->verify($result, $checksum));
     }
 
     public function testVerifyReturnsFalseForInvalidPayload(): void
     {
         $gateway = new NinePayGateway($this->config);
-        $payload = [
-            'result' => 'some-result',
-            'checksum' => 'wrong-checksum',
-        ];
-        
-        $this->assertFalse($gateway->verify($payload));
+        $result = 'some-result';
+        $checksum = 'wrong-checksum';
+
+        $this->assertFalse($gateway->verify($result, $checksum));
     }
 
     public function testDecodeResult(): void

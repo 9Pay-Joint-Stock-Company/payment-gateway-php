@@ -10,10 +10,5 @@ namespace NinePay\Contracts;
  */
 interface RequestInterface
 {
-    /**
-     * Convert the request to a data array.
-     *
-     * @return array
-     */
-    public function toArray(): array;
+    //
 }
