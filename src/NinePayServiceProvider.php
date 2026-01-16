@@ -3,6 +3,7 @@
 namespace NinePay;
 
 use Illuminate\Support\ServiceProvider;
+use NinePay\Config\NinePayConfig;
 
 class NinePayServiceProvider extends ServiceProvider
 {
@@ -17,7 +18,7 @@ class NinePayServiceProvider extends ServiceProvider
 
         $this->app->singleton('ninepay', function ($app) {
             $config = $app['config']->get('ninepay');
-            return new PaymentManager($config);
+            return new PaymentManager(NinePayConfig::fromArray($config));
         });
 
         $this->app->alias('ninepay', PaymentManager::class);

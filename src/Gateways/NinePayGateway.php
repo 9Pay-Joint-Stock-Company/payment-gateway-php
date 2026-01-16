@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace NinePay\Gateways;
 
+use JsonException;
+use NinePay\Config\NinePayConfig;
 use NinePay\Contracts\PaymentGatewayInterface;
-use NinePay\Contracts\RequestInterface;
 use NinePay\Contracts\ResponseInterface;
-use NinePay\Exceptions\InvalidConfigException;
 use NinePay\Support\BasicResponse;
 use NinePay\Support\CreatePaymentRequest;
 use NinePay\Utils\Environment;
@@ -22,8 +22,6 @@ use NinePay\Utils\UnicodeFormat;
  */
 class NinePayGateway implements PaymentGatewayInterface
 {
-    /** @var array<string,mixed> */
-    private array $config;
     /** @var string Merchant ID */
     private string $clientId;
     /** @var string Secret key used for signing */
@@ -38,23 +36,16 @@ class NinePayGateway implements PaymentGatewayInterface
     /**
      * NinePayGateway constructor.
      *
-     * @param array<string,mixed> $config Configuration including merchant_id, secret_key, checksum_key, and env.
+     * @param \NinePay\Config\NinePayConfig $config
      * @param HttpClient|null $http
-     * @throws InvalidConfigException When required configuration is missing.
      */
-    public function __construct(array $config, ?HttpClient $http = null)
+    public function __construct(NinePayConfig $config, ?HttpClient $http = null)
     {
-        $this->config = $config;
-        $this->clientId = (string)($config['merchant_id'] ?? $config['client_id'] ?? '');
-        $this->secretKey = (string)($config['secret_key'] ?? '');
-        $this->checksumKey = (string)($config['checksum_key'] ?? '');
-        $env = (string)($config['env'] ?? 'SANDBOX');
-        $this->endpoint = Environment::endpoint($env);
+        $this->clientId = $config->getMerchantId();
+        $this->secretKey = $config->getSecretKey();
+        $this->checksumKey = $config->getChecksumKey();
+        $this->endpoint = Environment::endpoint($config->getEnv());
         $this->http = $http ?? new HttpClient();
-
-        if ($this->clientId === '' || $this->secretKey === '' || $this->checksumKey === '') {
-            throw new InvalidConfigException('NinePay config requires merchant_id, secret_key, checksum_key');
-        }
     }
 
     /**
@@ -62,29 +53,15 @@ class NinePayGateway implements PaymentGatewayInterface
      *
      * @param CreatePaymentRequest $request
      * @return ResponseInterface
+     * @throws JsonException
      */
     public function createPayment(CreatePaymentRequest $request): ResponseInterface
     {
-        if ($request->getRequestCode() === '' || $request->getAmount() === '' || $request->getDescription() === '') {
-            return new BasicResponse(false, [], 'Missing required fields: request_code, amount, description');
-        }
-
         $time = (string)time();
-        $payload = [
+        $payload = array_merge([
             'merchantKey' => $this->clientId,
             'time' => $time,
-            'invoice_no' => $request->getRequestCode(),
-            'amount' => $request->getAmount(),
-            'description' => $request->getDescription(),
-        ];
-
-        if ($request->getBackUrl() !== '') {
-            $payload['back_url'] = $request->getBackUrl();
-        }
-
-        if ($request->getReturnUrl() !== '') {
-            $payload['return_url'] = $request->getReturnUrl();
-        }
+        ], $request->toPayload());
 
         $message = MessageBuilder::instance()
             ->with($time, $this->endpoint . '/payments/create', 'POST')
@@ -92,11 +69,10 @@ class NinePayGateway implements PaymentGatewayInterface
             ->build();
 
         $signature = Signature::sign($message, $this->secretKey);
-        $httpData = [
+        $redirectUrl = $this->endpoint . '/portal?' . http_build_query([
             'baseEncode' => base64_encode(json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)),
             'signature' => $signature,
-        ];
-        $redirectUrl = $this->endpoint . '/portal?' . http_build_query($httpData);
+        ]);
 
         return new BasicResponse(true, ['redirect_url' => $redirectUrl], 'OK');
     }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace NinePay;
 
+use NinePay\Config\NinePayConfig;
 use NinePay\Contracts\PaymentGatewayInterface;
 use NinePay\Gateways\NinePayGateway;
 
@@ -13,20 +14,17 @@ use NinePay\Gateways\NinePayGateway;
  */
 class PaymentManager
 {
-    /** @var array<string,mixed> Payment system configuration */
-    private array $config;
     /** @var PaymentGatewayInterface Payment gateway object */
     private PaymentGatewayInterface $gateway;
 
     /**
      * PaymentManager constructor.
      *
-     * @param array<string,mixed> $config
+     * @param NinePayConfig $config
      */
-    public function __construct(array $config)
+    public function __construct(NinePayConfig $config)
     {
-        $this->config = $config;
-        $this->gateway = new NinePayGateway($this->config);
+        $this->gateway = new NinePayGateway($config);
     }
 
     /**

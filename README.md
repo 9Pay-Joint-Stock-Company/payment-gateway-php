@@ -20,11 +20,10 @@ Official PHP SDK for integrating **9PAY Payment Gateway**.
 Supports **PHP Native**, **Laravel**, and **Lumen**.
 
 This package allows you to:
-
-- Create payment requests
-- Query transaction status
-- Verify webhook / callback data
-- Integrate easily using OOP, SOLID & Facade pattern
+- Create payment requests with strictly typed parameters.
+- Query transaction status.
+- Verify webhook / callback data.
+- Integrate easily using OOP, SOLID & Facade pattern.
 
 ---
 
@@ -33,7 +32,7 @@ This package allows you to:
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
-    - [PHP Native](#php-native)
+    - [Using NinePayConfig (PHP Native)](#using-ninepayconfig-php-native)
     - [Laravel](#laravel)
     - [Lumen](#lumen)
 - [Usage](#usage)
@@ -41,9 +40,7 @@ This package allows you to:
     - [Create Payment](#create-payment)
     - [Query Transaction](#query-transaction)
     - [Verify Webhook / Callback](#verify-webhook--callback)
-- [Error Handling](#error-handling)
-- [Testing](#testing)
-- [Security](#security)
+- [Enums & Constants](#enums--constants)
 - [License](#license)
 
 ---
@@ -69,24 +66,38 @@ composer require ninepay-gateway/rest-client-php
 
 ## Configuration
 
-### PHP Native
+### Using NinePayConfig (PHP Native)
+
+You strictly define your configuration using the `NinePay\Config\NinePayConfig` class.
 
 ```php
-$config = [
+use NinePay\Config\NinePayConfig;
+
+$config = new NinePayConfig(
+    'YOUR_MERCHANT_ID',
+    'YOUR_SECRET_KEY',
+    'YOUR_CHECKSUM_KEY',
+    'SANDBOX' // or 'PRODUCTION'
+);
+
+// Or create from array
+$config = NinePayConfig::fromArray([
     'merchant_id'  => 'YOUR_MERCHANT_ID',
     'secret_key'   => 'YOUR_SECRET_KEY',
     'checksum_key' => 'YOUR_CHECKSUM_KEY',
     'env'          => 'SANDBOX',
-];
+]);
 ```
 
----
-
 ### Laravel
+
+Publish the configuration file:
 
 ```bash
 php artisan vendor:publish --tag=ninepay-config
 ```
+
+Then strictly defined in your `.env` file:
 
 ```env
 NINEPAY_MERCHANT_ID=your_merchant_id
@@ -95,20 +106,23 @@ NINEPAY_CHECKSUM_KEY=your_checksum_key
 NINEPAY_ENV=SANDBOX
 ```
 
----
-
 ### Lumen
+
+Copy the configuration file:
 
 ```bash
 mkdir -p config
 cp vendor/ninepay-gateway/rest-client-php/config/ninepay.php config/ninepay.php
 ```
 
+Register the provider in `bootstrap/app.php`:
+
 ```php
 $app->register(NinePay\NinePayServiceProvider::class);
 $app->configure('ninepay');
 ```
 
+And configure aliases:
 ```php
 $app->withFacades();
 class_alias(NinePay\Facades\NinePay::class, 'NinePay');
@@ -120,53 +134,99 @@ class_alias(NinePay\Facades\NinePay::class, 'NinePay');
 
 ### Initialization
 
+**PHP Native:**
+
+```php
+use NinePay\Gateways\NinePayGateway;
+use NinePay\Config\NinePayConfig;
+
+$config = new NinePayConfig('MID', 'SECRET', 'CHECKSUM', 'SANDBOX');
+$gateway = new NinePayGateway($config);
+```
+
+**Laravel / Lumen:**
+
+The gateway is automatically configured via the service container.
+
 ```php
 use NinePay\PaymentManager;
 
-$manager = new PaymentManager($config);
-$gateway = $manager->getGateway();
-```
+// Inject PaymentManager
+public function __construct(PaymentManager $paymentManager) {
+    $this->gateway = $paymentManager->getGateway();
+}
 
-```php
+// Or use the Facade
 use NinePay;
-
-$gateway = NinePay::getGateway();
+// NinePay::createPayment(...)
 ```
 
 ---
 
 ### Create Payment
 
+The SDK uses `CreatePaymentRequest` with a fluent interface for setting parameters.
+
 ```php
 use NinePay\Support\CreatePaymentRequest;
+use NinePay\Enums\PaymentMethod;
+use NinePay\Enums\Currency;
+use NinePay\Enums\Language;
+use NinePay\Enums\TransactionType;
+use NinePay\Exceptions\PaymentException;
 
-$request = new CreatePaymentRequest(
-    'INV123456',
-    '50000',
-    'Payment for order #123',
-    'https://your-site.com/callback',
-    'https://your-site.com/return'
-);
+try {
+    // 1. Create Request with required fields
+    $request = new CreatePaymentRequest(
+        'INV_' . time(),       // Invoice No
+        '50000',               // Amount
+        'Payment for Order 1', // Description
+        'https://site.com/callback', // Back/Cancel URL
+        'https://site.com/return'    // Return URL
+    );
 
-$response = $gateway->createPayment($request);
+    // 2. Add optional parameters using fluent setters
+    $request->withMethod(PaymentMethod::ATM_CARD)
+            ->withClientIp('127.0.0.1')
+            ->withCurrency(Currency::VND)
+            ->withLang(Language::VI)
+            ->withTransactionType(TransactionType::INSTALLMENT)
+            ->withExpiresTime(1440) // Minutes
+            // Add any extra parameters supported by the API
+            ->withParam('my_custom_field', 'value');
 
-if ($response->isSuccess()) {
-    header('Location: ' . $response->getData()['redirect_url']);
-    exit;
+    // 3. Send Request
+    $response = $gateway->createPayment($request);
+
+    if ($response->isSuccess()) {
+        $redirectUrl = $response->getData()['redirect_url'];
+        header('Location: ' . $redirectUrl);
+        exit;
+    } else {
+        echo "Error: " . $response->getMessage();
+    }
+} catch (\InvalidArgumentException $e) {
+    // Validation error in Request creation
+    echo "Invalid Input: " . $e->getMessage();
+} catch (PaymentException $e) {
+    // API or Gateway error
+    echo "Payment Error: " . $e->getMessage();
 }
-
-echo $response->getMessage();
 ```
 
 ---
 
 ### Query Transaction
 
+Check the status of a transaction using the Invoice No (Transaction ID).
+
 ```php
-$response = $gateway->inquiry('9PAY_TRANSACTION_ID');
+$response = $gateway->inquiry('INV_123456');
 
 if ($response->isSuccess()) {
     print_r($response->getData());
+} else {
+    echo $response->getMessage();
 }
 ```
 
@@ -174,45 +234,58 @@ if ($response->isSuccess()) {
 
 ### Verify Webhook / Callback
 
+Verify the data received from 9Pay (IPN).
+
 ```php
+// Assume data comes from $_POST
 $result = $_POST['result'] ?? '';
 $checksum = $_POST['checksum'] ?? '';
 
 if ($gateway->verify($result, $checksum)) {
-    $decoded = $gateway->decodeResult($result);
-    $data = json_decode($decoded, true);
+    // Signature valid, decode the data
+    $jsonResult = $gateway->decodeResult($result);
+    $data = json_decode($jsonResult, true);
+    
+    // Process order...
+    $invoiceNo = $data['invoice_no'];
+    $status = $data['status']; // 'success', 'failure'
+    
+    echo 'OK';
 } else {
+    // Invalid signature
     http_response_code(400);
+    echo 'Checksum Mismatch';
 }
 ```
 
 ---
 
-## Error Handling
+## Enums & Constants
 
-```php
-use NinePay\Exceptions\PaymentException;
+The SDK provides Enums to avoid magic strings and ensure validity.
 
-try {
-    $gateway->createPayment($request);
-} catch (PaymentException $e) {
-    logger()->error($e->getMessage());
-}
-```
+### `NinePay\Enums\PaymentMethod`
+- `ATM_CARD`
+- `CREDIT_CARD`
+- `9PAY`
+- `COLLECTION`
+- `APPLE_PAY`
+- `vNPAY_PORTONE`
+- `ZALOPAY_WALLET`
+- `GOOGLE_PAY`
+- `QR_PAY`
+- `BUY_NOW_PAY_LATER`
 
----
+### `NinePay\Enums\Currency`
+- `VND`, `USD`, `IDR`, `EUR`, `GBP`, `CNY`, `JPY`, `AUD`, `KRW`, `CAD`, `HKD`, `INR`
 
-## Testing
+### `NinePay\Enums\Language`
+- `VI` (Vietnamese)
+- `EN` (English)
 
-```bash
-composer test
-```
-
----
-
-## Security
-
-Please report security issues to **hotro@9pay.vn**.
+### `NinePay\Enums\TransactionType`
+- `INSTALLMENT`
+- `CARD_AUTHORIZATION`
 
 ---
 

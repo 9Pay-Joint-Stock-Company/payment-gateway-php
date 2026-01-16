@@ -17,7 +17,8 @@ class PaymentManagerTest extends TestCase
 
     public function testGetGatewayReturnsNinePayGateway(): void
     {
-        $manager = new PaymentManager($this->config);
+        $config = \NinePay\Config\NinePayConfig::fromArray($this->config);
+        $manager = new PaymentManager($config);
         $gateway = $manager->getGateway();
 
         $this->assertInstanceOf(NinePayGateway::class, $gateway);

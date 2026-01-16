@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NinePay\Facades;
 
-use NinePay\Contracts\RequestInterface;
+use NinePay\Config\NinePayConfig;
 use NinePay\Contracts\ResponseInterface;
 use NinePay\Exceptions\PaymentException;
 use NinePay\PaymentManager;
@@ -22,9 +22,9 @@ class Payment
     /**
      * Payment constructor.
      *
-     * @param array<string,mixed> $config NinePay configuration.
+     * @param NinePayConfig $config NinePay configuration.
      */
-    public function __construct(array $config)
+    public function __construct(NinePayConfig $config)
     {
         $this->manager = new PaymentManager($config);
     }
