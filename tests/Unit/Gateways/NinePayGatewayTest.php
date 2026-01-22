@@ -22,7 +22,7 @@ class NinePayGatewayTest extends TestCase
     public function testCreatePaymentReturnsRedirectUrl(): void
     {
         $gateway = new NinePayGateway($this->config);
-        $request = new CreatePaymentRequest('REQ123', '10000', 'Test');
+        $request = new CreatePaymentRequest('REQ123', 10000, 'Test');
         
         $response = $gateway->createPayment($request);
         
@@ -37,7 +37,7 @@ class NinePayGatewayTest extends TestCase
     public function testCreatePaymentWithOptionalParameters(): void
     {
         $gateway = new NinePayGateway($this->config);
-        $request = (new CreatePaymentRequest('REQ123', '10000', 'Test'))
+        $request = (new CreatePaymentRequest('REQ123', 10000, 'Test'))
             ->withMethod(\NinePay\Enums\PaymentMethod::CREDIT_CARD)
             ->withClientIp('127.0.0.1')
             ->withCurrency(\NinePay\Enums\Currency::VND)
