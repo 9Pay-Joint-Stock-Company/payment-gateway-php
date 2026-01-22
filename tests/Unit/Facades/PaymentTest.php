@@ -28,7 +28,7 @@ class PaymentTest extends TestCase
     public function testCreatePayment(): void
     {
         $facade = new Payment($this->config);
-        $request = new CreatePaymentRequest('REQ123', '1000', 'Desc');
+        $request = new CreatePaymentRequest('REQ123', 100031, 'Desc');
         
         $response = $facade->createPayment($request);
         $this->assertInstanceOf(ResponseInterface::class, $response);

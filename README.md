@@ -191,9 +191,7 @@ try {
             ->withCurrency(Currency::VND)
             ->withLang(Language::VI)
             ->withTransactionType(TransactionType::INSTALLMENT)
-            ->withExpiresTime(1440) // Minutes
-            // Add any extra parameters supported by the API
-            ->withParam('my_custom_field', 'value');
+            ->withExpiresTime(1440); // Minutes
 
     // 3. Send Request
     $response = $gateway->createPayment($request);

@@ -9,38 +9,19 @@ use NinePay\Enums\PaymentMethod;
 use NinePay\Enums\TransactionType;
 use InvalidArgumentException;
 
+/**
+ * @property string|null method
+ * @property string|null clientIp
+ * @property string|null currency
+ * @property string|null lang
+ * @property string|null cardToken
+ * @property int|null saveToken
+ * @property string|null transactionType
+ * @property string|null clientPhone
+ * @property int|null expiresTime
+ */
 trait HasPaymentAttributes
 {
-    /** @var string|null Payment method */
-    protected ?string $method = null;
-
-    /** @var string|null Client IP address */
-    protected ?string $clientIp = null;
-
-    /** @var string|null Currency (VND, USD) */
-    protected ?string $currency = null;
-
-    /** @var string|null Language (vi, en) */
-    protected ?string $lang = null;
-
-    /** @var string|null Card token for recurring payment */
-    protected ?string $cardToken = null;
-
-    /** @var int|null Save token flag (1: ON, 0: OFF) */
-    protected ?int $saveToken = null;
-
-    /** @var string|null Transaction type */
-    protected ?string $transactionType = null;
-
-    /** @var string|null Client phone number */
-    protected ?string $clientPhone = null;
-
-    /** @var int|null Expiration time in minutes */
-    protected ?int $expiresTime = null;
-
-    /** @var array<string, mixed> Extra data */
-    protected array $extraData = [];
-
     public function withMethod(string $method): self
     {
         if (!PaymentMethod::isValid($method)) {
@@ -108,71 +89,5 @@ trait HasPaymentAttributes
         }
         $this->expiresTime = $expiresTime;
         return $this;
-    }
-    
-    /**
-     * Add extra parameter to the payload.
-     *
-     * @param string $key
-     * @param mixed $value
-     * @return self
-     */
-    public function withParam(string $key, $value): self
-    {
-        $this->extraData[$key] = $value;
-        return $this;
-    }
-
-    public function getMethod(): ?string
-    {
-        return $this->method;
-    }
-
-    public function getClientIp(): ?string
-    {
-        return $this->clientIp;
-    }
-
-    public function getCurrency(): ?string
-    {
-        return $this->currency;
-    }
-
-    public function getLang(): ?string
-    {
-        return $this->lang;
-    }
-
-    public function getCardToken(): ?string
-    {
-        return $this->cardToken;
-    }
-
-    public function getSaveToken(): ?int
-    {
-        return $this->saveToken;
-    }
-
-    public function getTransactionType(): ?string
-    {
-        return $this->transactionType;
-    }
-
-    public function getClientPhone(): ?string
-    {
-        return $this->clientPhone;
-    }
-
-    public function getExpiresTime(): ?int
-    {
-        return $this->expiresTime;
-    }
-    
-    /**
-     * @return array<string, mixed>
-     */
-    public function getExtraData(): array
-    {
-        return $this->extraData;
     }
 }

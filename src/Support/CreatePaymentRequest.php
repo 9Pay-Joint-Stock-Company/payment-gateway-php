@@ -3,50 +3,42 @@ declare(strict_types=1);
 
 namespace NinePay\Support;
 
-use NinePay\Contracts\RequestInterface;
 use NinePay\Support\Concerns\HasPaymentAttributes;
+use Symfony\Component\String\UnicodeString;
 
 /**
  * Class CreatePaymentRequest
- * 
+ *
  * Object containing payment creation request data.
+ * @property string requestCode
+ * @property float amount
+ * @property string description
+ * @property string|null backUrl
+ * @property string|null returnUrl
  */
-class CreatePaymentRequest implements RequestInterface
+class CreatePaymentRequest
 {
     use HasPaymentAttributes;
 
-    /** @var string Request code (unique for each transaction) */
-    private string $requestCode;
-
-    /** @var string Payment amount */
-    private string $amount;
-
-    /** @var string Transaction description */
-    private string $description;
-
-    /** @var string|null URL to return to after payment is completed */
-    private ?string $backUrl;
-
-    /** @var string|null URL to receive response from 9Pay */
-    private ?string $returnUrl;
+    protected array $payload = [];
 
     /**
      * CreatePaymentRequest constructor.
      *
      * @param string $requestCode
-     * @param string $amount
+     * @param float $amount
      * @param string $description
      * @param string|null $backUrl
      * @param string|null $returnUrl
      */
     public function __construct(
         string $requestCode,
-        string $amount,
+        float $amount,
         string $description,
         ?string $backUrl = null,
         ?string $returnUrl = null
     ) {
-        if ($requestCode === '' || $amount === '' || $description === '') {
+        if ($requestCode === '' || empty($amount) || $description === '') {
             throw new \InvalidArgumentException('Missing required fields: request_code, amount, description');
         }
 
@@ -57,29 +49,18 @@ class CreatePaymentRequest implements RequestInterface
         $this->returnUrl = $returnUrl;
     }
 
-    public function getRequestCode(): string
+    public function __set(string $name, $value): void
     {
-        return $this->requestCode;
+        $covertName = (new UnicodeString($name))->snake()->toString();
+
+        $this->payload[$covertName] = $value;
     }
 
-    public function getAmount(): string
+    public function __get(string $name)
     {
-        return $this->amount;
-    }
+        $covertName = (new UnicodeString($name))->snake()->toString();
 
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    public function getBackUrl(): ?string
-    {
-        return $this->backUrl;
-    }
-
-    public function getReturnUrl(): ?string
-    {
-        return $this->returnUrl;
+        return $this->payload[$covertName] ?? null;
     }
 
     /**
@@ -89,50 +70,6 @@ class CreatePaymentRequest implements RequestInterface
      */
     public function toPayload(): array
     {
-        $payload = [
-            'invoice_no' => $this->requestCode,
-            'amount' => $this->amount,
-            'description' => $this->description,
-        ];
-
-        if ($this->backUrl) {
-            $payload['back_url'] = $this->backUrl;
-        }
-        if ($this->returnUrl) {
-            $payload['return_url'] = $this->returnUrl;
-        }
-        if ($this->method) {
-            $payload['method'] = $this->method;
-        }
-        if ($this->clientIp) {
-            $payload['client_ip'] = $this->clientIp;
-        }
-        if ($this->currency) {
-            $payload['currency'] = $this->currency;
-        }
-        if ($this->lang) {
-            $payload['lang'] = $this->lang;
-        }
-        if ($this->cardToken) {
-            $payload['card_token'] = $this->cardToken;
-        }
-        if ($this->saveToken !== null) {
-            $payload['save_token'] = $this->saveToken;
-        }
-        if ($this->transactionType) {
-            $payload['transaction_type'] = $this->transactionType;
-        }
-        if ($this->clientPhone) {
-            $payload['client_phone'] = $this->clientPhone;
-        }
-        if ($this->expiresTime) {
-            $payload['expires_time'] = $this->expiresTime;
-        }
-
-        if (!empty($this->extraData)) {
-            $payload = array_merge($payload, $this->extraData);
-        }
-
-        return $payload;
+        return array_filter($this->payload);
     }
 }

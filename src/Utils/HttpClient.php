@@ -5,6 +5,7 @@ namespace NinePay\Utils;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  * Class HttpClient
@@ -42,11 +43,11 @@ class HttpClient
             $res = $this->client->request('GET', $url, [
                 'headers' => $headers,
             ]);
-        } catch (GuzzleException $e) {
-            return ['status' => 0, 'body' => ['error' => $e->getMessage()], 'headers' => []];
-        }
 
-        return $this->normalizeResponse($res->getStatusCode(), (string)$res->getBody(), $res->getHeaders());
+            return $this->normalizeResponse($res->getStatusCode(), (string)$res->getBody(), $res->getHeaders());
+        } catch (GuzzleException $e) {
+            return $this->handleErrorResponse($e);
+        }
     }
 
     /**
@@ -67,24 +68,46 @@ class HttpClient
         }
         try {
             $res = $this->client->request('POST', $url, $options);
+
+            return $this->normalizeResponse($res->getStatusCode(), (string)$res->getBody(), $res->getHeaders());
         } catch (GuzzleException $e) {
-            return ['status' => 0, 'body' => ['error' => $e->getMessage()], 'headers' => []];
+            return $this->handleErrorResponse($e);
         }
-        return $this->normalizeResponse($res->getStatusCode(), (string)$res->getBody(), $res->getHeaders());
     }
 
     /**
+     * @param int $status
+     * @param array|string $body
      * @param array $rawHeaders
      * @return array{status:int,body:mixed,headers:array}
      */
-    private function normalizeResponse(int $status, string $body, array $rawHeaders): array
+    private function normalizeResponse(int $status, $body, array $rawHeaders = []): array
     {
-        $data = json_decode($body, true);
-        $parsed = is_array($data) ? $data : $body;
+        $data = $body;
+        if (!is_array($body)) {
+            $data = json_decode($body, true) ?: [];
+        }
+
         return [
             'status' => $status,
-            'body' => $parsed,
+            'body' => $data,
             'headers' => $rawHeaders,
         ];
+    }
+
+    private function handleErrorResponse(GuzzleException $exception): array
+    {
+        if ($exception instanceof RequestException && $exception->getResponse()) {
+            return $this->normalizeResponse(
+                $exception->getResponse()->getStatusCode() ?? 500,
+                $exception->getResponse()->getBody()->getContents(),
+                $exception->getResponse()->getHeaders()
+            );
+        }
+
+        return $this->normalizeResponse(
+            500,
+            ['error' => $exception->getMessage()]
+        );
     }
 }
