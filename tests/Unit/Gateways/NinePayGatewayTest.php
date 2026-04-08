@@ -16,7 +16,7 @@ class NinePayGatewayTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->config = new NinePayConfig('MID123', 'SECRET', 'CHECKSUM', 'SANDBOX');
+        $this->config = new NinePayConfig('MID123', 'SECRET', 'CHECKSUM', 'https://payment.example.com');
     }
 
     public function testCreatePaymentReturnsRedirectUrl(): void
@@ -29,8 +29,7 @@ class NinePayGatewayTest extends TestCase
         $this->assertTrue($response->isSuccess());
         $data = $response->getData();
         $this->assertArrayHasKey('redirect_url', $data);
-        $this->assertStringContainsString('sand-payment.9pay.vn/portal', $data['redirect_url']);
-        $this->assertStringContainsString('sand-payment.9pay.vn/portal', $data['redirect_url']);
+        $this->assertStringContainsString('payment.example.com', $data['redirect_url']);
         $this->assertStringContainsString('signature=', $data['redirect_url']);
     }
 

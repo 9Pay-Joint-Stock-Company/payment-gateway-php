@@ -26,16 +26,16 @@ class NinePayConfigTest extends TestCase
         $this->assertEquals('MID_ARR', $config->getMerchantId());
         $this->assertEquals('SEC_ARR', $config->getSecretKey());
         $this->assertEquals('CHK_ARR', $config->getChecksumKey());
-        $this->assertEquals('SANDBOX', $config->getEnv()); // Default
+        $this->assertEquals('', $config->getEndpoint()); // Default
     }
 
     public function testGettersReturnCorrectValues(): void
     {
-        $config = new NinePayConfig('MID', 'SECRET', 'CHECKSUM', 'PROD');
-        
+        $config = new NinePayConfig('MID', 'SECRET', 'CHECKSUM', 'https://payment.example.com');
+
         $this->assertEquals('MID', $config->getMerchantId());
         $this->assertEquals('SECRET', $config->getSecretKey());
         $this->assertEquals('CHECKSUM', $config->getChecksumKey());
-        $this->assertEquals('PROD', $config->getEnv());
+        $this->assertEquals('https://payment.example.com', $config->getEndpoint());
     }
 }

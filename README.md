@@ -90,7 +90,7 @@ $config = new NinePayConfig(
     'MERCHANT_ID',
     'SECRET_KEY',
     'CHECKSUM_KEY',
-    'SANDBOX' // or PRODUCTION
+    'https://your-endpoint-url'
 );
 
 $gateway = new NinePayGateway($config);
@@ -103,7 +103,7 @@ $config = NinePayConfig::fromArray([
     'merchant_id' => 'MID',
     'secret_key' => 'SECRET',
     'checksum_key' => 'CHECKSUM',
-    'env' => 'SANDBOX',
+    'endpoint' => 'https://your-endpoint-url',
 ]);
 ```
 
@@ -123,7 +123,7 @@ Then configure environment variables:
 NINEPAY_MERCHANT_ID=your_merchant_id
 NINEPAY_SECRET_KEY=your_secret_key
 NINEPAY_CHECKSUM_KEY=your_checksum_key
-NINEPAY_ENV=SANDBOX
+NINEPAY_ENDPOINT=https://your-endpoint-url
 ```
 
 After configuration, the gateway is automatically resolved via Laravel's
@@ -192,7 +192,7 @@ PHP Native:
 use NinePay\Config\NinePayConfig;
 use NinePay\Gateways\NinePayGateway;
 
-$config = new NinePayConfig('MID', 'SECRET', 'CHECKSUM', 'SANDBOX');
+$config = new NinePayConfig('MID', 'SECRET', 'CHECKSUM', 'https://your-endpoint-url');
 $gateway = new NinePayGateway($config);
 ```
 

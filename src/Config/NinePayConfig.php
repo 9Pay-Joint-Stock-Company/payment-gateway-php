@@ -10,16 +10,16 @@ class NinePayConfig
     private string $merchantId;
     private string $secretKey;
     private string $checksumKey;
-    private string $env;
+    private string $endpoint;
 
     /**
      * @param string $merchantId
      * @param string $secretKey
      * @param string $checksumKey
-     * @param string $env
+     * @param string $endpoint
      * @throws InvalidConfigException
      */
-    public function __construct(string $merchantId, string $secretKey, string $checksumKey, string $env = 'SANDBOX')
+    public function __construct(string $merchantId, string $secretKey, string $checksumKey, string $endpoint = '')
     {
         if ($merchantId === '' || $secretKey === '' || $checksumKey === '') {
             throw new InvalidConfigException('NinePay config requires merchant_id, secret_key, checksum_key');
@@ -28,7 +28,7 @@ class NinePayConfig
         $this->merchantId = $merchantId;
         $this->secretKey = $secretKey;
         $this->checksumKey = $checksumKey;
-        $this->env = $env;
+        $this->endpoint = $endpoint;
     }
 
     public static function fromArray(array $config): self
@@ -37,7 +37,7 @@ class NinePayConfig
             $config['merchant_id'] ?? '',
             $config['secret_key'] ?? '',
             $config['checksum_key'] ?? '',
-            $config['env'] ?? 'SANDBOX'
+            $config['endpoint'] ?? ''
         );
     }
 
@@ -56,8 +56,8 @@ class NinePayConfig
         return $this->checksumKey;
     }
 
-    public function getEnv(): string
+    public function getEndpoint(): string
     {
-        return $this->env;
+        return $this->endpoint;
     }
 }

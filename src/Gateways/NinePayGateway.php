@@ -15,7 +15,6 @@ use NinePay\Request\CreateRefundRequest;
 use NinePay\Request\PayerAuthRequest;
 use NinePay\Request\ReverseCardPaymentRequest;
 use NinePay\Support\BasicResponse;
-use NinePay\Utils\Environment;
 use NinePay\Utils\HttpClient;
 use NinePay\Utils\MessageBuilder;
 use NinePay\Utils\Signature;
@@ -36,7 +35,7 @@ class NinePayGateway implements PaymentGatewayInterface
         $this->clientId = $config->getMerchantId();
         $this->secretKey = $config->getSecretKey();
         $this->checksumKey = $config->getChecksumKey();
-        $this->endpoint = Environment::endpoint($config->getEnv());
+        $this->endpoint = $config->getEndpoint();
         $this->http = $http ?? new HttpClient();
     }
 

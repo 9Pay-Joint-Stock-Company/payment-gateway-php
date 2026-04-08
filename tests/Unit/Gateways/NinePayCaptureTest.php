@@ -16,7 +16,7 @@ class NinePayCaptureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->config = new NinePayConfig('MID123', 'SECRET', 'CHECKSUM', 'SANDBOX');
+        $this->config = new NinePayConfig('MID123', 'SECRET', 'CHECKSUM', 'https://payment.example.com');
     }
 
     public function testCaptureSuccess(): void

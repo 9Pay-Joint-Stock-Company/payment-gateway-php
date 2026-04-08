@@ -18,7 +18,7 @@ class MessageBuilderTest extends TestCase
     public function testBuildGetMessage(): void
     {
         $date = '2023-10-27';
-        $uri = 'https://api.9pay.vn/test';
+        $uri = 'https://api.example.com/test';
         $message = MessageBuilder::instance()
             ->with($date, $uri, 'GET')
             ->build();
@@ -30,7 +30,7 @@ class MessageBuilderTest extends TestCase
     public function testBuildGetMessageWithParams(): void
     {
         $date = '2023-10-27';
-        $uri = 'https://api.9pay.vn/test';
+        $uri = 'https://api.example.com/test';
         $params = [
             'b' => '2',
             'a' => '1',
@@ -48,7 +48,7 @@ class MessageBuilderTest extends TestCase
     public function testBuildPostMessageWithBody(): void
     {
         $date = '2023-10-27';
-        $uri = 'https://api.9pay.vn/test';
+        $uri = 'https://api.example.com/test';
         $body = ['foo' => 'bar'];
         $message = MessageBuilder::instance()
             ->with($date, $uri, 'POST')
@@ -65,7 +65,7 @@ class MessageBuilderTest extends TestCase
     public function testToString(): void
     {
         $date = '2023-10-27';
-        $uri = 'https://api.9pay.vn/test';
+        $uri = 'https://api.example.com/test';
         $builder = MessageBuilder::instance()->with($date, $uri, 'GET');
         
         $this->assertEquals($builder->build(), (string)$builder);
